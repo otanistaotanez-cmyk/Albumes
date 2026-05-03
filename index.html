@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * { box-sizing: border-box; }
+    .info {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.artist {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.title {
+  font-size: 0.95rem;
+  font-weight: bold;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #0b1220;
+  color: white;
+  overflow-x: hidden;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  position: relative; /* 👈 clave para que el fondo funcione bien */
+}
+
+    /* Fondo dinámico con blur */
+    .bg {
+      position: fixed;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(40px) brightness(0.4);
+      transform: scale(1.1);
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      z-index: -1;
+    }
+
+    .bg.visible { opacity: 1; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 24px;
+      padding: 24px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .album {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      max-width: 150px;
+    }
+
+    .album:hover {
+      transform: scale(1.06);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.7);
+    }
+
+    .album img {
+      width: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg" id="bg"></div>
+
+<div class="grid">
+
+<div class="album" data-audio="audio1.mp3">
+  <img src="album1.png">
+  <div class="info">
+    <div class="artist">iza tkm</div>
+    <div class="title">i Music Listen</div>
+  </div>
+</div>
+
+<div class="album" data-audio="audio2.mp3">
+  <img src="album2.png">
+  <div class="info">
+    <div class="artist">Omar Courtz</div>
+    <div class="title">POR SI MAÑANA NO ESTOY</div>
+  </div>
+</div>
+
+<div class="album" data-audio="audio3.mp3">
+  <img src="album3.png">
+  <div class="info">
+    <div class="artist">ROSALÍA</div>
+    <div class="title">LUX (Complete Works)</div>
+  </div>
+</div>
+
+  <div class="album" data-audio="audio4.mp3"><img src="album4.png"></div>
+  <div class="album" data-audio="audio5.mp3"><img src="album5.png"></div>
+  <div class="album" data-audio="audio6.mp3"><img src="album6.png"></div>
+  <div class="album" data-audio="audio7.mp3"><img src="album7.png"></div>
+  <div class="album" data-audio="audio8.mp3"><img src="album8.png"></div>
+  <div class="album" data-audio="audio9.mp3"><img src="album9.png"></div>
+  <div class="album" data-audio="audio10.mp3"><img src="album10.png"></div>
+</div>
+
+<audio id="player"></audio>
+
+<script>
+const player = document.getElementById("player");
+const bg = document.getElementById("bg");
+
+let fadeInterval;
+
+function fadeOut(audio, callback) {
+  clearInterval(fadeInterval);
+  fadeInterval = setInterval(() => {
+    if (audio.volume > 0.05) {
+      audio.volume -= 0.05;
+    } else {
+      audio.volume = 0;
+      clearInterval(fadeInterval);
+      callback();
+    }
+  }, 40);
+}
+
+function fadeIn(audio) {
+  clearInterval(fadeInterval);
+  audio.volume = 0;
+  fadeInterval = setInterval(() => {
+    if (audio.volume < 0.95) {
+      audio.volume += 0.05;
+    } else {
+      audio.volume = 1;
+      clearInterval(fadeInterval);
+    }
+  }, 40);
+}
+
+function playAlbum(audioSrc, imgSrc) {
+  fadeOut(player, () => {
+    player.src = audioSrc;
+
+    player.onloadedmetadata = () => {
+      // empezar en punto aleatorio (entre 20% y 80% de la canción)
+      const duration = player.duration;
+      const randomStart = duration * (0.2 + Math.random() * 0.6);
+      player.currentTime = randomStart;
+
+      player.play();
+      fadeIn(player);
+    };
+  });
+
+  // fondo dinámico
+  bg.style.backgroundImage = `url('${imgSrc}')`;
+  bg.classList.add("visible");
+}
+
+
+document.querySelectorAll(".album").forEach(album => {
+  const img = album.querySelector("img");
+
+  album.addEventListener("mouseenter", () => {
+    playAlbum(album.dataset.audio, img.src);
+  });
+
+  album.addEventListener("click", () => {
+    playAlbum(album.dataset.audio, img.src);
+  });
+});
+</script>
+
+</body>
+</html>
